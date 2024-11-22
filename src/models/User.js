@@ -20,7 +20,7 @@ const UserSchema = new Schema(
         },
     },
     {
-        timestamps: true, // Ajoute createdAt et updatedAt automatiquement.
+        timestamps: true,
     }
 );
 
