@@ -1,13 +1,13 @@
-const Recommendation = require('../models/Review'); // Assurez-vous que le chemin est correct
-const CV = require('../models/CV'); // Modèle CV (si nécessaire pour validation)
-const User = require('../models/User'); // Modèle User (si nécessaire pour validation)
+const Recommendation = require('../models/Review'); 
+const CV = require('../models/CV'); 
+const User = require('../models/User'); 
 
 // Créer une nouvelle recommandation
 exports.createRecommendation = async (req, res) => {
     try {
         const { cvId, userId, comment } = req.body;
 
-        // Vérifier si le CV et l'utilisateur existent (facultatif, selon vos besoins)
+        // Vérifier que CV et utilisateur existent 
         const cvExists = await CV.findById(cvId);
         if (!cvExists) {
             return res.status(404).json({ error: "CV introuvable." });
@@ -37,8 +37,8 @@ exports.createRecommendation = async (req, res) => {
 exports.getRecommendations = async (req, res) => {
     try {
         const recommendations = await Recommendation.find()
-            .populate('cvId', 'title') // Remplacez 'title' par les champs nécessaires de CV
-            .populate('userId', 'name email'); // Remplacez 'name email' par les champs nécessaires de User
+            .populate('cvId', 'title') // Remplacer 'title', faut aussi remplacer les autres après
+            .populate('userId', 'name email'); // Remplacer 'name email' 
 
         res.status(200).json(recommendations);
     } catch (error) {
@@ -51,8 +51,8 @@ exports.getRecommendationById = async (req, res) => {
     try {
         const { id } = req.params;
         const recommendation = await Recommendation.findById(id)
-            .populate('cvId', 'title') // Remplacez 'title' par les champs nécessaires de CV
-            .populate('userId', 'name email'); // Remplacez 'name email' par les champs nécessaires de User
+            .populate('cvId', 'title') // Remplacer 'title' 
+            .populate('userId', 'name email'); // Remplacer 'name email' 
 
         if (!recommendation) {
             return res.status(404).json({ error: "Recommandation introuvable." });
