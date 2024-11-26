@@ -5,12 +5,12 @@ const RecommendationSchema = new Schema(
     {
         cvId: {
             type: Schema.ObjectId,
-            ref: 'CV', // Relation avec le modèle CV.
+            ref: 'CV', 
             required: true,
         },
         userId: {
             type: Schema.ObjectId,
-            ref: 'User', // Relation avec le modèle User (utilisateur qui a écrit la recommandation).
+            ref: 'User', 
             required: true,
         },
         comment: {
@@ -19,7 +19,7 @@ const RecommendationSchema = new Schema(
         },
     },
     {
-        timestamps: true, // Ajoute createdAt et updatedAt automatiquement.
+        timestamps: true, 
     }
 );
 
