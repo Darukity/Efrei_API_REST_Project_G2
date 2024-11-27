@@ -1,24 +1,21 @@
-const Recommendation = require('../models/Review'); 
-const CV = require('../models/CV'); 
-const User = require('../models/User'); 
+const Recommendation = require('../models/Review');
+const CV = require('../models/CV');
+const User = require('../models/User');
 
-// Créer une nouvelle recommandation
 exports.createRecommendation = async (req, res) => {
     try {
         const { cvId, userId, comment } = req.body;
 
-        // Vérifier que CV et utilisateur existent 
         const cvExists = await CV.findById(cvId);
         if (!cvExists) {
-            return res.status(404).json({ error: "CV introuvable." });
+            return res.status(404).json({ error: 'CV not found.' });
         }
 
         const userExists = await User.findById(userId);
         if (!userExists) {
-            return res.status(404).json({ error: "Utilisateur introuvable." });
+            return res.status(404).json({ error: 'User not found.' });
         }
 
-        // Créer une nouvelle recommandation
         const recommendation = new Recommendation({
             cvId,
             userId,
@@ -27,44 +24,58 @@ exports.createRecommendation = async (req, res) => {
 
         await recommendation.save();
 
-        res.status(201).json({ message: "Recommandation créée avec succès.", recommendation });
+        res.status(201).json({ message: 'Recommendation created successfully.', recommendation });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la création de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error creating recommendation.', details: error.message });
     }
 };
 
-// Obtenir toutes les recommandations
+exports.getRecommendationsForCV = async (req, res) => {
+    try {
+        const { cvId } = req.params;
+
+        const cvExists = await CV.findById(cvId);
+        if (!cvExists) {
+            return res.status(404).json({ error: 'CV not found.' });
+        }
+
+        const recommendations = await Recommendation.find({ cvId }).populate('userId', 'name email');
+
+        res.status(200).json({ recommendations });
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving recommendations for CV.', details: error.message });
+    }
+};
+
 exports.getRecommendations = async (req, res) => {
     try {
         const recommendations = await Recommendation.find()
-            .populate('cvId', 'title') // Remplacer 'title', faut aussi remplacer les autres après
-            .populate('userId', 'name email'); // Remplacer 'name email' 
+            .populate('cvId', 'title')
+            .populate('userId', 'name email');
 
         res.status(200).json(recommendations);
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la récupération des recommandations.", details: error.message });
+        res.status(500).json({ error: 'Error retrieving recommendations.', details: error.message });
     }
 };
 
-// Obtenir une recommandation par ID
 exports.getRecommendationById = async (req, res) => {
     try {
         const { id } = req.params;
         const recommendation = await Recommendation.findById(id)
-            .populate('cvId', 'title') // Remplacer 'title' 
-            .populate('userId', 'name email'); // Remplacer 'name email' 
+            .populate('cvId', 'title')
+            .populate('userId', 'name email');
 
         if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
+            return res.status(404).json({ error: 'Recommendation not found.' });
         }
 
         res.status(200).json(recommendation);
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la récupération de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error retrieving recommendation.', details: error.message });
     }
 };
 
-// Mettre à jour une recommandation
 exports.updateRecommendation = async (req, res) => {
     try {
         const { id } = req.params;
@@ -77,16 +88,15 @@ exports.updateRecommendation = async (req, res) => {
         );
 
         if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
+            return res.status(404).json({ error: 'Recommendation not found.' });
         }
 
-        res.status(200).json({ message: "Recommandation mise à jour avec succès.", recommendation });
+        res.status(200).json({ message: 'Recommendation updated successfully.', recommendation });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la mise à jour de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error updating recommendation.', details: error.message });
     }
 };
 
-// Supprimer une recommandation
 exports.deleteRecommendation = async (req, res) => {
     try {
         const { id } = req.params;
@@ -94,11 +104,11 @@ exports.deleteRecommendation = async (req, res) => {
         const recommendation = await Recommendation.findByIdAndDelete(id);
 
         if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
+            return res.status(404).json({ error: 'Recommendation not found.' });
         }
 
-        res.status(200).json({ message: "Recommandation supprimée avec succès." });
+        res.status(200).json({ message: 'Recommendation deleted successfully.' });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la suppression de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error deleting recommendation.', details: error.message });
     }
 };
