@@ -51,7 +51,7 @@ module.exports = {
     getAllVisibleCV: async (req, res) => {
         try {
             const visible_cvs = await CVmodel.find(
-
+                {isVisible: {$eq: true}}
             );
             res.status(200).send(visible_cvs);
         } catch (error) {
