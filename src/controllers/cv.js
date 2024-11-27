@@ -1,5 +1,5 @@
 const { verifyCv } = require('../validator/cv')
-const CVmodel = require('../models/cv');
+const Cvmodel = require('../models/cv');
 
 module.exports = {
     createCV: async (req, res) => {
@@ -14,7 +14,7 @@ module.exports = {
             }
 
             // Création du CV
-            const newCv = new CVmodel({
+            const newCv = new Cvmodel({
                 userId: req.body.userId,
                 personalInfo: req.body.personalInfo,
                 education: req.body.education,
@@ -38,7 +38,7 @@ module.exports = {
 
     getAllCV: async (req, res) => {
         try {
-            const cvs = await CVmodel.find();
+            const cvs = await Cvmodel.find();
             res.status(200).send(cvs);
         } catch (error) {
             console.error(error);
@@ -50,7 +50,7 @@ module.exports = {
 
     getAllVisibleCV: async (req, res) => {
         try {
-            const visible_cvs = await CVmodel.find(
+            const visible_cvs = await Cvmodel.find(
                 {isVisible: {$eq: true}}
             );
             res.status(200).send(visible_cvs);
@@ -67,12 +67,7 @@ module.exports = {
             const cvId = req.params.id;
 
             // Recherche du CV
-            const cv = await CVmodel.findById(cvId);
-            if (!cv) {
-                return res.status(500).send({
-                    error: 'CV not found',
-                });
-            }
+            const cv = await Cvmodel.findById(cvId);
 
             res.status(200).send(cv);
         } catch (error) {
@@ -96,7 +91,7 @@ module.exports = {
             }
 
             // Mise à jour
-            const updatedCV = await CVmodel.findByIdAndUpdate(cvId, req.body, {
+            const updatedCV = await Cvmodel.findByIdAndUpdate(cvId, req.body, {
                 new: true,
             });
 
@@ -123,7 +118,7 @@ module.exports = {
             const cvId = req.params.id;
 
             // Suppression
-            const deletedCV = await CVmodel.findByIdAndDelete(cvId);
+            const deletedCV = await Cvmodel.findByIdAndDelete(cvId);
 
             if (!deletedCV) {
                 return res.status(404).send({
@@ -155,7 +150,7 @@ module.exports = {
             }
 
             // Mise à jour de la visibilité
-            const updatedCV = await CVmodel.findByIdAndUpdate(
+            const updatedCV = await Cvmodel.findByIdAndUpdate(
                 cvId,
                 { isVisible },
                 { new: true } // Retourne le document mis à jour
