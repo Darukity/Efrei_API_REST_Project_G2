@@ -1,23 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controllers/review');
+const { verifyToken } = require('../middleware/jwt');
 const { check, validationResult } = require('express-validator');
 
 /**
  * @swagger
  * tags:
  *   name: Recommendations
- *   description: API for managing recommendations
+ *   description: API pour la gestion des recommandations
  */
 
 /**
  * @swagger
  * /api/recommendations:
  *   post:
- *     summary: Create a new recommendation
- *     description: Adds a new recommendation to a CV.
+ *     summary: Créer une nouvelle recommandation
+ *     description: Permet à un utilisateur d'ajouter une recommandation à un CV.
  *     tags:
  *       - Recommendations
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -26,45 +29,30 @@ const { check, validationResult } = require('express-validator');
  *             type: object
  *             required:
  *               - cvId
- *               - userId
  *               - comment
  *             properties:
  *               cvId:
  *                 type: string
- *                 description: The ID of the CV to which the recommendation is related.
+ *                 description: L'identifiant du CV.
  *                 example: "6450d8e8b6f99e9f1a8b4567"
- *               userId:
- *                 type: string
- *                 description: The ID of the user writing the recommendation.
- *                 example: "670507e5a85e8b4542098ab9"
  *               comment:
  *                 type: string
- *                 description: The recommendation text.
- *                 example: "Great team player and an excellent problem solver."
+ *                 description: Le commentaire.
+ *                 example: "Excellent travail sur ce projet !"
  *     responses:
  *       201:
- *         description: Recommendation created successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Recommandation créée avec succès."
- *                 recommendation:
- *                   type: object
- *       400:
- *         description: Bad request - Validation error.
+ *         description: Recommandation créée avec succès.
+ *       404:
+ *         description: CV ou utilisateur introuvable.
  *       500:
- *         description: Internal server error.
+ *         description: Erreur serveur.
  */
 router.post(
     '/',
+    verifyToken,
     [
-        check('cvId', 'cvId is required and must be a valid ObjectId').isMongoId(),
-        check('userId', 'userId is required and must be a valid ObjectId').isMongoId(),
-        check('comment', 'Comment is required').notEmpty(),
+        check('cvId', 'cvId est requis et doit être un ObjectId valide').isMongoId(),
+        check('comment', 'Le commentaire est requis').notEmpty(),
     ],
     (req, res, next) => {
         const errors = validationResult(req);
@@ -80,55 +68,50 @@ router.post(
  * @swagger
  * /api/recommendations:
  *   get:
- *     summary: Get all recommendations
- *     description: Retrieves all recommendations with optional user and CV data populated.
+ *     summary: Récupérer toutes les recommandations
+ *     description: Retourne toutes les recommandations avec les détails des utilisateurs et des CV.
  *     tags:
  *       - Recommendations
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: A list of recommendations.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
+ *         description: Liste des recommandations.
  *       500:
- *         description: Internal server error.
+ *         description: Erreur serveur.
  */
-router.get('/', reviewController.getRecommendations);
+router.get('/', verifyToken, reviewController.getRecommendations);
 
 /**
  * @swagger
  * /api/recommendations/{id}:
  *   get:
- *     summary: Get a recommendation by ID
- *     description: Retrieves a single recommendation by its ID.
+ *     summary: Récupérer une recommandation par ID
+ *     description: Retourne les détails d'une recommandation spécifique.
  *     tags:
  *       - Recommendations
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the recommendation.
+ *         description: L'identifiant de la recommandation.
  *         schema:
  *           type: string
  *           example: "6450d8e8b6f99e9f1a8b4567"
  *     responses:
  *       200:
- *         description: Recommendation details.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
+ *         description: Détails de la recommandation.
  *       404:
- *         description: Recommendation not found.
+ *         description: Recommandation introuvable.
  *       500:
- *         description: Internal server error.
+ *         description: Erreur serveur.
  */
 router.get(
     '/:id',
-    [check('id', 'Invalid ID format').isMongoId()],
+    verifyToken,
+    [check('id', 'ID invalide').isMongoId()],
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -143,15 +126,17 @@ router.get(
  * @swagger
  * /api/recommendations/{id}:
  *   put:
- *     summary: Update a recommendation
- *     description: Updates the comment of a recommendation by its ID.
+ *     summary: Modifier une recommandation
+ *     description: Permet de modifier le commentaire d'une recommandation existante.
  *     tags:
  *       - Recommendations
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the recommendation.
+ *         description: L'identifiant de la recommandation.
  *         schema:
  *           type: string
  *           example: "6450d8e8b6f99e9f1a8b4567"
@@ -161,24 +146,29 @@ router.get(
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - comment
  *             properties:
  *               comment:
  *                 type: string
- *                 description: The updated recommendation comment.
- *                 example: "Updated recommendation text."
+ *                 description: Nouveau commentaire.
+ *                 example: "Texte mis à jour."
  *     responses:
  *       200:
- *         description: Recommendation updated successfully.
+ *         description: Recommandation mise à jour.
  *       404:
- *         description: Recommendation not found.
+ *         description: Recommandation introuvable.
+ *       403:
+ *         description: Non autorisé à modifier cette recommandation.
  *       500:
- *         description: Internal server error.
+ *         description: Erreur serveur.
  */
 router.put(
     '/:id',
+    verifyToken,
     [
-        check('id', 'Invalid ID format').isMongoId(),
-        check('comment', 'Comment is required').notEmpty(),
+        check('id', 'ID invalide').isMongoId(),
+        check('comment', 'Le commentaire est requis').notEmpty(),
     ],
     (req, res, next) => {
         const errors = validationResult(req);
@@ -194,29 +184,34 @@ router.put(
  * @swagger
  * /api/recommendations/{id}:
  *   delete:
- *     summary: Delete a recommendation
- *     description: Deletes a recommendation by its ID.
+ *     summary: Supprimer une recommandation
+ *     description: Permet de supprimer une recommandation. Seul le propriétaire du CV peut la supprimer.
  *     tags:
  *       - Recommendations
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the recommendation.
+ *         description: L'identifiant de la recommandation.
  *         schema:
  *           type: string
  *           example: "6450d8e8b6f99e9f1a8b4567"
  *     responses:
  *       200:
- *         description: Recommendation deleted successfully.
+ *         description: Recommandation supprimée.
  *       404:
- *         description: Recommendation not found.
+ *         description: Recommandation introuvable.
+ *       403:
+ *         description: Non autorisé à supprimer cette recommandation.
  *       500:
- *         description: Internal server error.
+ *         description: Erreur serveur.
  */
 router.delete(
     '/:id',
-    [check('id', 'Invalid ID format').isMongoId()],
+    verifyToken,
+    [check('id', 'ID invalide').isMongoId()],
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
