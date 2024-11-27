@@ -1,22 +1,22 @@
 const router = require('express').Router();
-const userController = require('../controllers/user');
+const authController = require('../controllers/auth');
 const { verifyToken } = require('../middleware/jwt');
 
 /**
  * @swagger
  * tags:
- *   name: User
+ *   name: Authentication
  *   description: API for managing user information
  */
 
 /**
  * @swagger
- * /api/user/register:
+ * /api/auth/register:
  *   post:
  *     summary: Register a new user
  *     description: Create a new user account with the provided details.
  *     tags:
- *       - User
+ *       - Authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -68,16 +68,16 @@ const { verifyToken } = require('../middleware/jwt');
  *       500:
  *         description: Internal server error.
  */
-router.post('/register', userController.register);
+router.post('/register', authController.register);
 
 /**
  * @swagger
- * /api/user/login:
+ * /api/auth/login:
  *   post:
  *     summary: User login
  *     description: Authenticate a user with email and password and return a JWT token.
  *     tags:
- *       - User
+ *       - Authentication
  *     requestBody:
  *       required: true
  *       content:
@@ -124,16 +124,16 @@ router.post('/register', userController.register);
  *       500:
  *         description: Internal server error.
  */
-router.post('/login', userController.login);
+router.post('/login', authController.login);
 
 /**
  * @swagger
- * /api/user/logout:
+ * /api/auth/logout:
  *   post:
  *     summary: User logout
  *     description: Log out the authenticated user and clear the session token.
  *     tags:
- *       - User
+ *       - Authentication
  *     responses:
  *       200:
  *         description: User logged out successfully.
@@ -148,110 +148,6 @@ router.post('/login', userController.login);
  *       500:
  *         description: Internal server error.
  */
-router.post('/logout', userController.logout);
-
-/**
- * @swagger
- * /api/user/me:
- *   post:
- *     summary: Get current user's information
- *     description: Retrieve information about the authenticated user using the JWT token.
- *     tags:
- *       - User
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User information retrieved successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                   example: "670507e5a85e8b4542098ab9"
- *                 name:
- *                   type: string
- *                   example: John Doe
- *                 email:
- *                   type: string
- *                   example: john.doe@example.com
- *       500:
- *         description: Internal server error.
- */
-router.post('/me', verifyToken, userController.getMyInfos);
-
-/**
- * @swagger
- * /api/user/{id}:
- *   delete:
- *     summary: Delete a user
- *     description: Remove a user by their unique identifier.
- *     tags:
- *       - User
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The unique identifier of the user.
- *         schema:
- *           type: string
- *           example: "670507e5a85e8b4542098ab9"
- *     responses:
- *       200:
- *         description: User deleted successfully.
- *       404:
- *         description: User not found.
- *       500:
- *         description: Internal server error.
- */
-router.delete('/:id', verifyToken, userController.deleteUser);
-
-/**
- * @swagger
- * /api/user/{id}:
- *   put:
- *     summary: Update a user's information
- *     description: Update the specified user's name, email, or password.
- *     tags:
- *       - User
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The unique identifier of the user.
- *         schema:
- *           type: string
- *           example: "670507e5a85e8b4542098ab9"
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: Jane Doe
- *               email:
- *                 type: string
- *                 example: jane.doe@example.com
- *               password:
- *                 type: string
- *                 example: "NewPassword123"
- *     responses:
- *       200:
- *         description: User updated successfully.
- *       404:
- *         description: User not found.
- *       500:
- *         description: Internal server error.
- */
-router.put('/:id', verifyToken, userController.updateUser);
+router.post('/logout', authController.logout);
 
 module.exports = router;
