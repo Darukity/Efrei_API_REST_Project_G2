@@ -1,104 +1,85 @@
-const Recommendation = require('../models/Review'); 
-const CV = require('../models/CV'); 
-const User = require('../models/User'); 
+const { validateReview } = require('../validators/reviewValidator');
+const Recommendation = require('../models/Review');
+const CV = require('../models/CV');
 
-// Créer une nouvelle recommandation
-exports.createRecommendation = async (req, res) => {
+
+const createRecommendation = async (req, res) => {
     try {
-        const { cvId, userId, comment } = req.body;
+        const validationErrors = validateReview(req.body);
+        if (validationErrors) {
+            return res.status(400).json({ error: validationErrors.message });
+        }
 
-        // Vérifier que CV et utilisateur existent 
+        const { cvId, comment } = req.body;
+        const userId = req.user._id; 
+
         const cvExists = await CV.findById(cvId);
         if (!cvExists) {
-            return res.status(404).json({ error: "CV introuvable." });
+            return res.status(404).json({ error: 'CV not found.' });
         }
 
-        const userExists = await User.findById(userId);
-        if (!userExists) {
-            return res.status(404).json({ error: "Utilisateur introuvable." });
-        }
-
-        // Créer une nouvelle recommandation
-        const recommendation = new Recommendation({
-            cvId,
-            userId,
-            comment,
-        });
-
+        const recommendation = new Recommendation({ cvId, userId, comment });
         await recommendation.save();
 
-        res.status(201).json({ message: "Recommandation créée avec succès.", recommendation });
+        res.status(201).json({ message: 'Recommendation created successfully.', recommendation });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la création de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error creating recommendation.', details: error.message });
     }
 };
 
-// Obtenir toutes les recommandations
-exports.getRecommendations = async (req, res) => {
-    try {
-        const recommendations = await Recommendation.find()
-            .populate('cvId', 'title') // Remplacer 'title', faut aussi remplacer les autres après
-            .populate('userId', 'name email'); // Remplacer 'name email' 
-
-        res.status(200).json(recommendations);
-    } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la récupération des recommandations.", details: error.message });
-    }
-};
-
-// Obtenir une recommandation par ID
-exports.getRecommendationById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const recommendation = await Recommendation.findById(id)
-            .populate('cvId', 'title') // Remplacer 'title' 
-            .populate('userId', 'name email'); // Remplacer 'name email' 
-
-        if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
-        }
-
-        res.status(200).json(recommendation);
-    } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la récupération de la recommandation.", details: error.message });
-    }
-};
-
-// Mettre à jour une recommandation
-exports.updateRecommendation = async (req, res) => {
+const updateRecommendation = async (req, res) => {
     try {
         const { id } = req.params;
         const { comment } = req.body;
+        const userId = req.user._id; 
 
-        const recommendation = await Recommendation.findByIdAndUpdate(
-            id,
-            { comment },
-            { new: true, runValidators: true }
-        );
-
+        const recommendation = await Recommendation.findById(id);
         if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
+            return res.status(404).json({ error: 'Recommendation not found.' });
+        }
+        if (!recommendation.userId.equals(userId)) {
+            return res.status(403).json({ error: 'You are not authorized to update this recommendation.' });
         }
 
-        res.status(200).json({ message: "Recommandation mise à jour avec succès.", recommendation });
+        const validationErrors = validateReview({ cvId: recommendation.cvId, comment });
+        if (validationErrors) {
+            return res.status(400).json({ error: validationErrors.message });
+        }
+
+        recommendation.comment = comment;
+        await recommendation.save();
+
+        res.status(200).json({ message: 'Recommendation updated successfully.', recommendation });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la mise à jour de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error updating recommendation.', details: error.message });
     }
 };
 
-// Supprimer une recommandation
-exports.deleteRecommendation = async (req, res) => {
+const deleteRecommendation = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user._id;
 
-        const recommendation = await Recommendation.findByIdAndDelete(id);
-
+        const recommendation = await Recommendation.findById(id);
         if (!recommendation) {
-            return res.status(404).json({ error: "Recommandation introuvable." });
+            return res.status(404).json({ error: 'Recommendation not found.' });
         }
 
-        res.status(200).json({ message: "Recommandation supprimée avec succès." });
+        const cv = await CV.findById(recommendation.cvId);
+        if (!cv || !cv.userId.equals(userId)) {
+            return res.status(403).json({ error: 'You are not authorized to delete this recommendation.' });
+        }
+
+        await recommendation.deleteOne();
+
+        res.status(200).json({ message: 'Recommendation deleted successfully.' });
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de la suppression de la recommandation.", details: error.message });
+        res.status(500).json({ error: 'Error deleting recommendation.', details: error.message });
     }
+};
+
+module.exports = {
+    createRecommendation,
+    updateRecommendation,
+    deleteRecommendation,
 };
