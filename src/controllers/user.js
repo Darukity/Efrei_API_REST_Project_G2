@@ -52,7 +52,7 @@ module.exports = {
         } catch (error) {
             res.status(500).json({ message: 'Error updating user', error: error.message });
         }
-    };
+    }
     
 
 };
