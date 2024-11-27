@@ -1,25 +1,28 @@
-const { verifyCV } = require('../validator/cv');
+const { verifyCv } = require('../validator/cv')
 const CVmodel = require('../models/cv');
 
 module.exports = {
     createCV: async (req, res) => {
         try {
             // Validation
-            const isNotValid = verifyCV(req.body);
-            if (!isNotValid) {
-                return res.status(400).send({
-                    error: 'Invalid CV data',
+            const isNotValid = verifyCv(req.body);
+            if (isNotValid) {
+                res.status(400);
+                res.send({
+                    error: isNotValid.message
                 });
             }
 
             // Création du CV
-            const newCv = await CVmodel.create({
+            const newCv = new CVmodel({
                 userId: req.body.userId,
                 personalInfo: req.body.personalInfo,
                 education: req.body.education,
                 experience: req.body.experience,
                 isVisible: req.body.isVisible,
             });
+
+            newCv.save();
 
             res.status(201).send({
                 success: true,
@@ -47,7 +50,9 @@ module.exports = {
 
     getAllVisibleCV: async (req, res) => {
         try {
-            const visible_cvs = await CVmodel.find();
+            const visible_cvs = await CVmodel.find(
+
+            );
             res.status(200).send(visible_cvs);
         } catch (error) {
             console.error(error);
@@ -64,7 +69,7 @@ module.exports = {
             // Recherche du CV
             const cv = await CVmodel.findById(cvId);
             if (!cv) {
-                return res.status(404).send({
+                return res.status(500).send({
                     error: 'CV not found',
                 });
             }
@@ -83,7 +88,7 @@ module.exports = {
             const cvId = req.params.id;
 
             // Validation
-            const isNotValid = verifyCV(req.body);
+            const isNotValid = verifyCv(req.body);
             if (!isNotValid) {
                 return res.status(400).send({
                     error: 'Invalid CV data',

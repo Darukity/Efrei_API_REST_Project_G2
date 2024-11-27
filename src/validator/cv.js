@@ -8,20 +8,21 @@ module.exports = {
         let cvSchema = {
             type: 'object',
             properties: {
+                userId: { type: 'string' },
                 personalInfo: {
                     type: 'object',
                     properties: {
                         firstName: {
                             type: 'string',
-                            minLength: 5,
+                            minLength: 3,
                             maxLength: 50,
-                            errorMessage: 'Please enter a first name that is 5 to 50 characters long.',
+                            errorMessage: 'Please enter a first name that is 3 to 50 characters long.',
                         },
                         lastName: {
                             type: 'string',
-                            minLength: 5,
+                            minLength: 3,
                             maxLength: 50,
-                            errorMessage: 'Please enter a last name that is 5 to 50 characters long.',
+                            errorMessage: 'Please enter a last name that is 3 to 50 characters long.',
                         },
                         description: {
                             type: 'string',
@@ -94,15 +95,18 @@ module.exports = {
         };
 
         // Validate the CV against the schema
-        let validationResult = validator.validate(cv, cvSchema);
+        let result = validator.validate(cv, cvSchema);
 
-        if (validationResult.errors.length > 0) {
-            throw new Error(
-                'CV validation failed: ' +
-                validationResult.errors.map((error) => error.stack).join(', ')
-            );
+        // if validation failed
+        if (Array.isArray(result.errors) && result.errors.length) {
+            let failedInputs = '';
+
+            result.errors.forEach((error) => {
+                failedInputs += (error.schema.errorMessage || error.message) + ', ';
+            });
+            return {
+                message: failedInputs
+            };
         }
-
-        return true; // If validation passes, return true
-    },
+    }
 };
