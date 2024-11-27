@@ -1,21 +1,22 @@
 const router = require('express').Router();
-const authController = require('../controllers/auth');
+const userController = require('../controllers/user');
+const { verifyToken } = require('../middleware/jwt');
 
 /**
  * @swagger
  * tags:
- *   name: Authentication
- *   description: API for user authentication
+ *   name: User
+ *   description: API for managing user information
  */
 
 /**
  * @swagger
- * /api/auth/register:
+ * /api/user/register:
  *   post:
  *     summary: Register a new user
- *     description: Creates a new user account with the provided details.
+ *     description: Create a new user account with the provided details.
  *     tags:
- *       - Authentication
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -29,18 +30,16 @@ const authController = require('../controllers/auth');
  *             properties:
  *               name:
  *                 type: string
- *                 description: The user's name.
+ *                 description: The name of the user.
  *                 example: John Doe
  *               email:
  *                 type: string
- *                 format: email
- *                 description: The user's email address.
+ *                 description: The email of the user.
  *                 example: john.doe@example.com
  *               password:
  *                 type: string
- *                 format: password
- *                 description: The user's password.
- *                 example: P@ssw0rd!
+ *                 description: The password for the user.
+ *                 example: "P@ssw0rd123"
  *     responses:
  *       201:
  *         description: User registered successfully.
@@ -49,33 +48,36 @@ const authController = require('../controllers/auth');
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: string
- *                   description: The unique identifier of the user.
- *                   example: "670507e5a85e8b4542098ab9"
- *                 name:
- *                   type: string
- *                   description: The name of the user.
- *                   example: John Doe
- *                 email:
- *                   type: string
- *                   description: The email address of the user.
- *                   example: john.doe@example.com
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "670507e5a85e8b4542098ab9"
+ *                     name:
+ *                       type: string
+ *                       example: John Doe
+ *                     email:
+ *                       type: string
+ *                       example: john.doe@example.com
  *       400:
- *         description: Bad request - Invalid input or missing required fields.
+ *         description: Validation error in the user input.
  *       500:
  *         description: Internal server error.
  */
-router.post('/register', authController.register);
+router.post('/register', userController.register);
 
 /**
  * @swagger
- * /api/auth/login:
+ * /api/user/login:
  *   post:
- *     summary: Authenticate user
- *     description: Logs in a user and returns a JWT token for authenticated access.
+ *     summary: User login
+ *     description: Authenticate a user with email and password and return a JWT token.
  *     tags:
- *       - Authentication
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -88,47 +90,168 @@ router.post('/register', authController.register);
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 description: The user's email address.
+ *                 description: User's email.
  *                 example: john.doe@example.com
  *               password:
  *                 type: string
- *                 format: password
- *                 description: The user's password.
- *                 example: P@ssw0rd!
+ *                 description: User's password.
+ *                 example: "P@ssw0rd123"
  *     responses:
  *       200:
- *         description: Successfully authenticated.
+ *         description: Login successful.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 message:
  *                   type: string
- *                   description: JWT token for accessing protected routes.
- *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                   example: "Successfully logged in."
  *                 user:
  *                   type: object
  *                   properties:
- *                     id:
- *                       type: string
- *                       description: The unique identifier of the user.
- *                       example: "670507e5a85e8b4542098ab9"
  *                     name:
  *                       type: string
- *                       description: The first name of the user.
  *                       example: John Doe
  *                     email:
  *                       type: string
- *                       description: The email address of the user.
  *                       example: john.doe@example.com
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       401:
- *         description: Unauthorized - Email or password incorrect.
+ *         description: Invalid credentials.
  *       500:
  *         description: Internal server error.
  */
-router.post('/login', authController.login);
-router.post('/logout', authController.logout);
+router.post('/login', userController.login);
+
+/**
+ * @swagger
+ * /api/user/logout:
+ *   post:
+ *     summary: User logout
+ *     description: Log out the authenticated user and clear the session token.
+ *     tags:
+ *       - User
+ *     responses:
+ *       200:
+ *         description: User logged out successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Successfully logged out."
+ *       500:
+ *         description: Internal server error.
+ */
+router.post('/logout', userController.logout);
+
+/**
+ * @swagger
+ * /api/user/me:
+ *   post:
+ *     summary: Get current user's information
+ *     description: Retrieve information about the authenticated user using the JWT token.
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "670507e5a85e8b4542098ab9"
+ *                 name:
+ *                   type: string
+ *                   example: John Doe
+ *                 email:
+ *                   type: string
+ *                   example: john.doe@example.com
+ *       500:
+ *         description: Internal server error.
+ */
+router.post('/me', verifyToken, userController.getMyInfos);
+
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: Remove a user by their unique identifier.
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique identifier of the user.
+ *         schema:
+ *           type: string
+ *           example: "670507e5a85e8b4542098ab9"
+ *     responses:
+ *       200:
+ *         description: User deleted successfully.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.delete('/:id', verifyToken, userController.deleteUser);
+
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   put:
+ *     summary: Update a user's information
+ *     description: Update the specified user's name, email, or password.
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique identifier of the user.
+ *         schema:
+ *           type: string
+ *           example: "670507e5a85e8b4542098ab9"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Jane Doe
+ *               email:
+ *                 type: string
+ *                 example: jane.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: "NewPassword123"
+ *     responses:
+ *       200:
+ *         description: User updated successfully.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.put('/:id', verifyToken, userController.updateUser);
 
 module.exports = router;
