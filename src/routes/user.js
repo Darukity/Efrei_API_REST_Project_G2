@@ -45,5 +45,8 @@ const { verifyToken } = require('../middleware/jwt');
  *         description: Internal server error.
  */
 router.post('/me', verifyToken, userController.getMyInfos);
+router.delete('/:id', verifyToken, userController.deleteUser);
+router.put('/:id', verifyToken, userController.updateUser);
+
 
 module.exports = router;

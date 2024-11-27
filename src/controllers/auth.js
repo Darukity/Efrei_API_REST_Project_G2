@@ -69,5 +69,13 @@ module.exports = {
                 message: error.message || 'some error occurred while logging user'
             });
         }
+    },
+
+    logout: async (req, res) => {
+        res.clearCookie('token'); 
+
+        res.status(200).send({
+            message: 'Successfully logged out',
+        });
     }
 };
