@@ -1,49 +1,181 @@
-//const { verifyBook } = require('../validator/cv');
-const CV_model = require('../models/cv');
+const { verifyCv } = require('../validator/cv')
+const CVmodel = require('../models/cv');
+
 module.exports = {
     createCV: async (req, res) => {
         try {
-            const cv = new CV_model({
+            // Validation
+            const isNotValid = verifyCv(req.body);
+            if (isNotValid) {
+                res.status(400);
+                res.send({
+                    error: isNotValid.message
+                });
+            }
+
+            // Création du CV
+            const newCv = new CVmodel({
                 userId: req.body.userId,
                 personalInfo: req.body.personalInfo,
                 education: req.body.education,
                 experience: req.body.experience,
                 isVisible: req.body.isVisible,
             });
-            res.send
+
+            newCv.save();
+
+            res.status(201).send({
+                success: true,
+                cv: newCv,
+            });
         } catch (error) {
             console.error(error);
-            res.status(500).send('An error occurred while creating the CV');
+            res.status(500).send({
+                error: error.message || 'An error occurred while creating the CV',
+            });
         }
     },
+
+    getAllCV: async (req, res) => {
+        try {
+            const cvs = await CVmodel.find();
+            res.status(200).send(cvs);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                error: error.message || 'Something went wrong while fetching CVs',
+            });
+        }
+    },
+
+    getAllVisibleCV: async (req, res) => {
+        try {
+            const visible_cvs = await CVmodel.find(
+                {isVisible: {$eq: true}}
+            );
+            res.status(200).send(visible_cvs);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                error: error.message || 'An error occurred while fetching Visible CV',
+            })
+        }
+    },
+
     getCV: async (req, res) => {
         try {
             const cvId = req.params.id;
-            const cv = CV_model.findById(cvId);
-            res.send(cv);
+
+            // Recherche du CV
+            const cv = await CVmodel.findById(cvId);
+            if (!cv) {
+                return res.status(500).send({
+                    error: 'CV not found',
+                });
+            }
+
+            res.status(200).send(cv);
         } catch (error) {
             console.error(error);
-            res.status(500).send('An error occurred while getting the CV');
+            res.status(500).send({
+                error: error.message || 'An error occurred while getting the CV',
+            });
         }
     },
-    updateCV: (req, res) => {
+
+    updateCV: async (req, res) => {
         try {
             const cvId = req.params.id;
-            const cv = CV_model.findByIdAndUpdate(cvId, req.body);
-            res.send(cv);
+
+            // Validation
+            const isNotValid = verifyCv(req.body);
+            if (!isNotValid) {
+                return res.status(400).send({
+                    error: 'Invalid CV data',
+                });
+            }
+
+            // Mise à jour
+            const updatedCV = await CVmodel.findByIdAndUpdate(cvId, req.body, {
+                new: true,
+            });
+
+            if (!updatedCV) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            res.status(200).send({
+                message: 'CV updated successfully',
+                data: updatedCV,
+            });
         } catch (error) {
             console.error(error);
-            res.status(500).send('An error occurred while updating the CV');
+            res.status(500).send({
+                error: error.message || 'An error occurred while updating the CV',
+            });
         }
     },
-    delete: (req, res) => {
+
+    deleteCV: async (req, res) => {
         try {
             const cvId = req.params.id;
-            const cv = CV_model.findByIdAndDelete(cvId);
-            res.send(cv);
+
+            // Suppression
+            const deletedCV = await CVmodel.findByIdAndDelete(cvId);
+
+            if (!deletedCV) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            res.status(200).send({
+                message: 'CV deleted successfully',
+            });
         } catch (error) {
             console.error(error);
-            res.status(500).send('An error occurred while deleting the CV');
+            res.status(500).send({
+                error: error.message || 'Something went wrong while deleting the CV',
+            });
+        }
+    },
+
+    setVisibility: async (req, res) => {
+        try {
+            const cvId = req.params.id;
+
+            // Vérification si la visibilité est correctement définie
+            const { isVisible } = req.body;
+            if (typeof isVisible !== 'boolean') {
+                return res.status(400).send({
+                    error: 'Invalid visibility data. "isVisible" must be a boolean value.',
+                });
+            }
+
+            // Mise à jour de la visibilité
+            const updatedCV = await CVmodel.findByIdAndUpdate(
+                cvId,
+                { isVisible },
+                { new: true } // Retourne le document mis à jour
+            );
+
+            if (!updatedCV) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            res.status(200).send({
+                message: 'CV visibility updated successfully',
+                data: updatedCV,
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                error: error.message || 'An error occurred while updating the CV visibility',
+            });
         }
     },
 };
