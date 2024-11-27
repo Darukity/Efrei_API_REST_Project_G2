@@ -96,6 +96,7 @@ router.get('/:id', cvController.getCV);
  *         description: The unique identifier of the CV to update.
  *         schema:
  *           type: string
+ *           example: "63c7f9b1c02c65b2d1234567"
  *     requestBody:
  *       description: Updated CV data
  *       required: true
@@ -158,78 +159,14 @@ router.delete('/:id', cvController.deleteCV);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
- *                 description: The unique identifier of the user.
- *                 example: "63c7f9b1c02c65b2d1234567"
- *               personalInfo:
- *                 type: object
- *                 properties:
- *                   firstName:
- *                     type: string
- *                     description: The first name of the user.
- *                     example: "John"
- *                   lastName:
- *                     type: string
- *                     description: The last name of the user.
- *                     example: "Doe"
- *                   description:
- *                     type: string
- *                     description: A short description or bio of the user.
- *                     example: "Experienced full-stack developer."
- *               education:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     degree:
- *                       type: string
- *                       description: Degree obtained by the user.
- *                       example: "Bachelor of Science in Computer Science"
- *                     institution:
- *                       type: string
- *                       description: Institution where the degree was obtained.
- *                       example: "MIT"
- *                     year:
- *                       type: integer
- *                       description: Year the degree was obtained.
- *                       example: 2020
- *               experience:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     jobTitle:
- *                       type: string
- *                       description: Title of the job position.
- *                       example: "Software Engineer"
- *                     company:
- *                       type: string
- *                       description: Name of the company.
- *                       example: "TechCorp"
- *                     years:
- *                       type: integer
- *                       description: Number of years in the position.
- *                       example: 3
- *               isVisible:
- *                 type: boolean
- *                 description: Visibility status of the CV.
- *                 example: true
+ *             $ref: '#/components/schemas/CV'
  *     responses:
  *       201:
  *         description: CV created successfully.
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 cv:
- *                   $ref: '#/components/schemas/CV'
+ *               $ref: '#/components/schemas/CV'
  *       400:
  *         description: Invalid CV data.
  *       500:
@@ -274,6 +211,7 @@ router.post('/', cvController.createCV);
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: CV visibility updated successfully.
  *                 data:
  *                   $ref: '#/components/schemas/CV'
  *       400:
@@ -285,5 +223,79 @@ router.post('/', cvController.createCV);
  */
 router.patch('/:id/visibility', cvController.setVisibility);
 
-
 module.exports = router;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     CV:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: The unique identifier of the user.
+ *           example: "63c7f9b1c02c65b2d1234567"
+ *         personalInfo:
+ *           type: object
+ *           properties:
+ *             firstName:
+ *               type: string
+ *               description: The first name of the user.
+ *               example: "John"
+ *             lastName:
+ *               type: string
+ *               description: The last name of the user.
+ *               example: "Doe"
+ *             description:
+ *               type: string
+ *               description: A short bio or description of the user.
+ *               example: "Experienced full-stack developer."
+ *         education:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               degree:
+ *                 type: string
+ *                 description: Degree obtained.
+ *                 example: "Bachelor of Science in Computer Science"
+ *               institution:
+ *                 type: string
+ *                 description: Institution where the degree was obtained.
+ *                 example: "MIT"
+ *               year:
+ *                 type: integer
+ *                 description: Year of completion.
+ *                 example: 2020
+ *         experience:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               jobTitle:
+ *                 type: string
+ *                 description: Job title held.
+ *                 example: "Software Engineer"
+ *               company:
+ *                 type: string
+ *                 description: Company name.
+ *                 example: "TechCorp"
+ *               years:
+ *                 type: integer
+ *                 description: Years of experience in the role.
+ *                 example: 3
+ *         isVisible:
+ *           type: boolean
+ *           description: Visibility status of the CV.
+ *           example: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date and time when the CV was created.
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date and time when the CV was last updated.
+ */
+
