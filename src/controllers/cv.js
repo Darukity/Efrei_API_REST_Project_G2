@@ -7,8 +7,7 @@ module.exports = {
             // Validation
             const isNotValid = verifyCv(req.body);
             if (isNotValid) {
-                res.status(400);
-                res.send({
+                return res.status(400).send({
                     error: isNotValid.message
                 });
             }
@@ -69,6 +68,22 @@ module.exports = {
             // Recherche du CV
             const cv = await Cvmodel.findById(cvId);
 
+            if (!cv) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            // Vérifier si le cv n'est pas visible
+            if (cv.isVisible === false) {
+                // Vérifier que l'utilisateur est le propriétaire du CV
+                if (cv.userId.toString() !== req.user._id.toString()) {
+                    return res.status(403).send({
+                        error: 'Unauthorized to see this CV',
+                    });
+                }
+            }
+
             res.status(200).send(cv);
         } catch (error) {
             console.error(error);
@@ -90,16 +105,25 @@ module.exports = {
                 });
             }
 
-            // Mise à jour
-            const updatedCV = await Cvmodel.findByIdAndUpdate(cvId, req.body, {
-                new: true,
-            });
+            // Rechercher le CV dans la base de données
+            const cv = await Cvmodel.findById(cvId);
 
-            if (!updatedCV) {
+            if (!cv) {
                 return res.status(404).send({
                     error: 'CV not found',
                 });
             }
+
+            // Vérifier que l'utilisateur est le propriétaire du CV
+            if (cv.userId.toString() !== req.user._id.toString()) {
+                return res.status(403).send({
+                    error: 'Unauthorized to update this CV',
+                });
+            }
+
+            const updatedCV = await Cvmodel.findByIdAndUpdate(cvId, req.body, {
+                new: true,
+            });
 
             res.status(200).send({
                 message: 'CV updated successfully',
@@ -116,6 +140,22 @@ module.exports = {
     deleteCV: async (req, res) => {
         try {
             const cvId = req.params.id;
+
+            // Rechercher le CV dans la base de données
+            const cv = await Cvmodel.findById(cvId);
+
+            if (!cv) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            // Vérifier que l'utilisateur est le propriétaire du CV
+            if (cv.userId.toString() !== req.user._id.toString()) {
+                return res.status(403).send({
+                    error: 'Unauthorized to delete this CV',
+                });
+            }
 
             // Suppression
             const deletedCV = await Cvmodel.findByIdAndDelete(cvId);
@@ -140,6 +180,22 @@ module.exports = {
     setVisibility: async (req, res) => {
         try {
             const cvId = req.params.id;
+
+            // Rechercher le CV dans la base de données
+            const cv = await Cvmodel.findById(cvId);
+
+            if (!cv) {
+                return res.status(404).send({
+                    error: 'CV not found',
+                });
+            }
+
+            // Vérifier que l'utilisateur est le propriétaire du CV
+            if (cv.userId.toString() !== req.user._id.toString()) {
+                return res.status(403).send({
+                    error: 'Unauthorized to edit visibility for this CV',
+                });
+            }
 
             // Vérification si la visibilité est correctement définie
             const { isVisible } = req.body;

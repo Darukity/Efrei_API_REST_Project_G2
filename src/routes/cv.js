@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const cvController = require('../controllers/cv');
+const {verifyToken} = require("../middleware/jwt");
 
 /**
  * @swagger
@@ -79,7 +80,7 @@ router.get('/getAllVisible', cvController.getAllVisibleCV);
  *       500:
  *         description: Internal server error.
  */
-router.get('/:id', cvController.getCV);
+router.get('/:id', verifyToken,cvController.getCV);
 
 /**
  * @swagger
@@ -118,7 +119,7 @@ router.get('/:id', cvController.getCV);
  *       500:
  *         description: Internal server error.
  */
-router.put('/:id', cvController.updateCV);
+router.put('/:id', verifyToken, cvController.updateCV);
 
 /**
  * @swagger
@@ -143,7 +144,7 @@ router.put('/:id', cvController.updateCV);
  *       500:
  *         description: Internal server error.
  */
-router.delete('/:id', cvController.deleteCV);
+router.delete('/:id', verifyToken, cvController.deleteCV);
 
 /**
  * @swagger
@@ -172,7 +173,7 @@ router.delete('/:id', cvController.deleteCV);
  *       500:
  *         description: Internal server error.
  */
-router.post('/', cvController.createCV);
+router.post('/', verifyToken, cvController.createCV);
 
 /**
  * @swagger
@@ -221,7 +222,7 @@ router.post('/', cvController.createCV);
  *       500:
  *         description: Internal server error.
  */
-router.patch('/:id/visibility', cvController.setVisibility);
+router.patch('/:id/visibility', verifyToken, cvController.setVisibility);
 
 module.exports = router;
 

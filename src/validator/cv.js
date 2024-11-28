@@ -89,6 +89,12 @@ module.exports = {
                     type: 'boolean',
                     default: true, // Default value if not provided
                 },
+                createdAt: {
+                    type: 'string',
+                },
+                updatedAt: {
+                    type: 'string',
+                }
             },
             required: ['personalInfo', 'education', 'experience'], // Mandatory sections in the CV
             additionalProperties: false, // Disallow any other fields outside defined properties
