@@ -59,7 +59,7 @@ module.exports = {
             res.status(200).send({
                 message: 'Successfully logged in',
                 user: {
-                    id: user.id,
+                    id: user._id,
                     name: user.name,
                     email: user.email,
                     token
