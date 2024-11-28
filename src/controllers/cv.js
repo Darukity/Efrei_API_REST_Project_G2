@@ -1,5 +1,5 @@
 const { verifyCv } = require('../validator/cv')
-const Cvmodel = require('../models/cv');
+const Cvmodel = require('../models/Cv');
 
 module.exports = {
     createCV: async (req, res) => {
