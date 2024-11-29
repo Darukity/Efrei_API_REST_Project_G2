@@ -51,7 +51,7 @@ router.post('/me', verifyToken, userController.getMyInfos);
  *     summary: Supprime un utilisateur spécifique
  *     description: Permet à un utilisateur authentifié de supprimer son propre compte. L'utilisateur doit être autorisé à effectuer cette opération.
  *     tags:
- *       - Users
+ *       - User
  *     parameters:
  *       - in: path
  *         name: id
@@ -116,7 +116,7 @@ router.delete('/:id', verifyToken, userController.deleteUser);
  *     summary: Met à jour un utilisateur spécifique
  *     description: Permet à un utilisateur authentifié de mettre à jour son propre compte. L'utilisateur doit être autorisé à effectuer cette opération.
  *     tags:
- *       - Users
+ *       - User
  *     parameters:
  *       - in: path
  *         name: id

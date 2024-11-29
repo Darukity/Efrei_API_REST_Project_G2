@@ -4,7 +4,6 @@ module.exports = {
     verifyCv: (cv) => {
         let validator = new Validator();
 
-        // Define the schema for a CV
         let cvSchema = {
             type: 'object',
             properties: {
@@ -30,8 +29,8 @@ module.exports = {
                             errorMessage: 'Please provide a description that is at least 5 characters long.',
                         },
                     },
-                    required: ['firstName', 'lastName'], // Personal info must have first and last name
-                    additionalProperties: false, // No additional fields are allowed in personalInfo
+                    required: ['firstName', 'lastName'], 
+                    additionalProperties: false, 
                 },
                 education: {
                     type: 'array',
@@ -56,7 +55,7 @@ module.exports = {
                             },
                         },
                         required: ['degree', 'institution', 'year'],
-                        additionalProperties: false, // No extra fields allowed
+                        additionalProperties: false, 
                     },
                 },
                 experience: {
@@ -82,12 +81,12 @@ module.exports = {
                             },
                         },
                         required: ['jobTitle', 'company', 'years'],
-                        additionalProperties: false, // No extra fields allowed
+                        additionalProperties: false, 
                     },
                 },
                 isVisible: {
                     type: 'boolean',
-                    default: true, // Default value if not provided
+                    default: true, 
                 },
                 createdAt: {
                     type: 'string',
@@ -96,14 +95,12 @@ module.exports = {
                     type: 'string',
                 }
             },
-            required: ['personalInfo', 'education', 'experience'], // Mandatory sections in the CV
-            additionalProperties: false, // Disallow any other fields outside defined properties
+            required: ['personalInfo', 'education', 'experience'], 
+            additionalProperties: false, 
         };
 
-        // Validate the CV against the schema
         let result = validator.validate(cv, cvSchema);
 
-        // if validation failed
         if (Array.isArray(result.errors) && result.errors.length) {
             let failedInputs = '';
 
