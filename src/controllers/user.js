@@ -44,7 +44,7 @@ module.exports = {
                 error: error.message || 'An error occurred while deleting the User',
             });
         }
-    };
+    },
     
     updateUser: async (req, res) => {
         const { id } = req.params;
