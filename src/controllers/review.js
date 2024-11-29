@@ -1,5 +1,5 @@
 const Recommendation = require('../models/Review');
-const CV = require('../models/CV');
+const CV = require('../models/Cv');
 const User = require('../models/User');
 
 module.exports = {
