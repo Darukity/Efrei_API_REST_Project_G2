@@ -2,6 +2,7 @@ const Recommendation = require('../models/Review');
 const CV = require('../models/CV');
 const User = require('../models/User');
 
+// Créer une nouvelle recommandation
 exports.createRecommendation = async (req, res) => {
     try {
         const { cvId, userId, comment } = req.body;
@@ -30,6 +31,7 @@ exports.createRecommendation = async (req, res) => {
     }
 };
 
+// Récupérer toutes les recommandations liées à un CV spécifique
 exports.getRecommendationsForCV = async (req, res) => {
     try {
         const { cvId } = req.params;
@@ -47,18 +49,27 @@ exports.getRecommendationsForCV = async (req, res) => {
     }
 };
 
-exports.getRecommendations = async (req, res) => {
+// Récupérer toutes les recommandations créées par un utilisateur spécifique
+exports.getRecommendationsByUser = async (req, res) => {
     try {
-        const recommendations = await Recommendation.find()
+        const { userId } = req.params;
+
+        const userExists = await User.findById(userId);
+        if (!userExists) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const recommendations = await Recommendation.find({ userId })
             .populate('cvId', 'title')
             .populate('userId', 'name email');
 
-        res.status(200).json(recommendations);
+        res.status(200).json({ recommendations });
     } catch (error) {
-        res.status(500).json({ error: 'Error retrieving recommendations.', details: error.message });
+        res.status(500).json({ error: 'Error retrieving recommendations for user.', details: error.message });
     }
 };
 
+// Récupérer une recommandation par son ID
 exports.getRecommendationById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -76,6 +87,7 @@ exports.getRecommendationById = async (req, res) => {
     }
 };
 
+// Mettre à jour une recommandation
 exports.updateRecommendation = async (req, res) => {
     try {
         const { id } = req.params;
@@ -97,6 +109,7 @@ exports.updateRecommendation = async (req, res) => {
     }
 };
 
+// Supprimer une recommandation
 exports.deleteRecommendation = async (req, res) => {
     try {
         const { id } = req.params;

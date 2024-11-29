@@ -1,225 +1,183 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const reviewController = require('../controllers/review');
 const { verifyToken } = require('../middleware/jwt');
-const { check, validationResult } = require('express-validator');
 
 /**
  * @swagger
  * tags:
- *   name: Recommendations
- *   description: API pour la gestion des recommandations
+ *   name: Review
+ *   description: API for managing reviews
  */
 
 /**
  * @swagger
- * /api/recommendations:
+ * /api/review/:
  *   post:
- *     summary: Créer une nouvelle recommandation
- *     description: Permet à un utilisateur d'ajouter une recommandation à un CV.
+ *     summary: Create a new review
+ *     description: Add a new review for a CV.
  *     tags:
- *       - Recommendations
- *     security:
- *       - bearerAuth: []
+ *       - Review
  *     requestBody:
+ *       description: Review data to be created
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - cvId
- *               - comment
  *             properties:
  *               cvId:
  *                 type: string
- *                 description: L'identifiant du CV.
- *                 example: "6450d8e8b6f99e9f1a8b4567"
+ *                 description: The ID of the CV being reviewed.
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user creating the review.
  *               comment:
  *                 type: string
- *                 description: Le commentaire.
- *                 example: "Excellent travail sur ce projet !"
+ *                 description: The comment for the review.
  *     responses:
  *       201:
- *         description: Recommandation créée avec succès.
- *       404:
- *         description: CV ou utilisateur introuvable.
+ *         description: Review created successfully.
+ *       400:
+ *         description: Invalid review data.
  *       500:
- *         description: Erreur serveur.
+ *         description: Internal server error.
  */
-router.post(
-    '/',
-    verifyToken,
-    [
-        check('cvId', 'cvId est requis et doit être un ObjectId valide').isMongoId(),
-        check('comment', 'Le commentaire est requis').notEmpty(),
-    ],
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    },
-    reviewController.createRecommendation
-);
+router.post('/', verifyToken, reviewController.createRecommendation);
 
 /**
  * @swagger
- * /api/recommendations:
+ * /api/review/cv/{cvId}:
  *   get:
- *     summary: Récupérer toutes les recommandations
- *     description: Retourne toutes les recommandations avec les détails des utilisateurs et des CV.
+ *     summary: Get all reviews for a CV
+ *     description: Retrieve all reviews associated with a specific CV.
  *     tags:
- *       - Recommendations
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Liste des recommandations.
- *       500:
- *         description: Erreur serveur.
- */
-router.get('/', verifyToken, reviewController.getRecommendations);
-
-/**
- * @swagger
- * /api/recommendations/{id}:
- *   get:
- *     summary: Récupérer une recommandation par ID
- *     description: Retourne les détails d'une recommandation spécifique.
- *     tags:
- *       - Recommendations
- *     security:
- *       - bearerAuth: []
+ *       - Review
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: cvId
+ *         in: path
  *         required: true
- *         description: L'identifiant de la recommandation.
+ *         description: The unique identifier of the CV.
  *         schema:
  *           type: string
- *           example: "6450d8e8b6f99e9f1a8b4567"
  *     responses:
  *       200:
- *         description: Détails de la recommandation.
+ *         description: List of reviews for the specified CV.
  *       404:
- *         description: Recommandation introuvable.
+ *         description: CV not found.
  *       500:
- *         description: Erreur serveur.
+ *         description: Internal server error.
  */
-router.get(
-    '/:id',
-    verifyToken,
-    [check('id', 'ID invalide').isMongoId()],
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    },
-    reviewController.getRecommendationById
-);
+router.get('/cv/:cvId', reviewController.getRecommendationsForCV);
 
 /**
  * @swagger
- * /api/recommendations/{id}:
+ * /api/review/user/{userId}:
+ *   get:
+ *     summary: Get all reviews by a user
+ *     description: Retrieve all reviews created by a specific user.
+ *     tags:
+ *       - Review
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: The unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of reviews created by the user.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/user/:userId', reviewController.getRecommendationsByUser);
+
+/**
+ * @swagger
+ * /api/review/{id}:
+ *   get:
+ *     summary: Get a specific review
+ *     description: Retrieve detailed information about a specific review by its ID.
+ *     tags:
+ *       - Review
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The unique identifier of the review.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Details of the specified review.
+ *       404:
+ *         description: Review not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/:id', reviewController.getRecommendationById);
+
+/**
+ * @swagger
+ * /api/review/{id}:
  *   put:
- *     summary: Modifier une recommandation
- *     description: Permet de modifier le commentaire d'une recommandation existante.
+ *     summary: Update a specific review
+ *     description: Modify the content of a specific review by its ID.
  *     tags:
- *       - Recommendations
- *     security:
- *       - bearerAuth: []
+ *       - Review
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
- *         description: L'identifiant de la recommandation.
+ *         description: The unique identifier of the review.
  *         schema:
  *           type: string
- *           example: "6450d8e8b6f99e9f1a8b4567"
  *     requestBody:
+ *       description: Updated review data
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - comment
  *             properties:
  *               comment:
  *                 type: string
- *                 description: Nouveau commentaire.
- *                 example: "Texte mis à jour."
+ *                 description: The updated comment for the review.
  *     responses:
  *       200:
- *         description: Recommandation mise à jour.
+ *         description: Review updated successfully.
  *       404:
- *         description: Recommandation introuvable.
- *       403:
- *         description: Non autorisé à modifier cette recommandation.
+ *         description: Review not found.
  *       500:
- *         description: Erreur serveur.
+ *         description: Internal server error.
  */
-router.put(
-    '/:id',
-    verifyToken,
-    [
-        check('id', 'ID invalide').isMongoId(),
-        check('comment', 'Le commentaire est requis').notEmpty(),
-    ],
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    },
-    reviewController.updateRecommendation
-);
+router.put('/:id', verifyToken, reviewController.updateRecommendation);
 
 /**
  * @swagger
- * /api/recommendations/{id}:
+ * /api/review/{id}:
  *   delete:
- *     summary: Supprimer une recommandation
- *     description: Permet de supprimer une recommandation. Seul le propriétaire du CV peut la supprimer.
+ *     summary: Delete a specific review
+ *     description: Remove a review by its unique identifier.
  *     tags:
- *       - Recommendations
- *     security:
- *       - bearerAuth: []
+ *       - Review
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
- *         description: L'identifiant de la recommandation.
+ *         description: The unique identifier of the review to delete.
  *         schema:
  *           type: string
- *           example: "6450d8e8b6f99e9f1a8b4567"
  *     responses:
  *       200:
- *         description: Recommandation supprimée.
+ *         description: Review deleted successfully.
  *       404:
- *         description: Recommandation introuvable.
- *       403:
- *         description: Non autorisé à supprimer cette recommandation.
+ *         description: Review not found.
  *       500:
- *         description: Erreur serveur.
+ *         description: Internal server error.
  */
-router.delete(
-    '/:id',
-    verifyToken,
-    [check('id', 'ID invalide').isMongoId()],
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    },
-    reviewController.deleteRecommendation
-);
+router.delete('/:id', verifyToken, reviewController.deleteRecommendation);
 
 module.exports = router;
