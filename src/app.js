@@ -7,10 +7,8 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 const cors = require('cors');
 
-// Autorise l'accès exterieur au serveur
 app.use(cors());
 
-//Parse des requetes en JSON
 app.use(express.json());
 
 const swaggerOptions = {
