@@ -3,6 +3,12 @@
 
 Groupe N°2 composé de Loris Navarro, Samuel Charton et Gaëtan Maire
 
+# Branches Git
+- Branche loulounav78 : gérée par Loris NAVARRO.
+- Branche Samuel : gérée par Samuel CHARTON.
+- Branche Gaytan : gérée par Gaëtan Maire.
+
+
 ## Fonctionnalités principales
 
 - **Authentification des utilisateurs** :
