@@ -84,6 +84,40 @@ router.get('/:id', verifyToken,cvController.getCV);
 
 /**
  * @swagger
+ * /api/cv/user/{id}:
+ *   get:
+ *     summary: Get all CVs for a specific user
+ *     description: Retrieve all CVs belonging to a specific user, accessible only to the owner.
+ *     tags:
+ *       - CV
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The unique identifier of the user.
+ *         schema:
+ *           type: string
+ *           example: "63c7f9b1c02c65b2d1234567"
+ *     responses:
+ *       200:
+ *         description: List of CVs belonging to the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CV'
+ *       404:
+ *         description: No CVs found for the user.
+ *       403:
+ *         description: Unauthorized access.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/user/:id', verifyToken, cvController.getUserCV);
+
+/**
+ * @swagger
  * /api/cv/{id}:
  *   put:
  *     summary: Update a specific CV
