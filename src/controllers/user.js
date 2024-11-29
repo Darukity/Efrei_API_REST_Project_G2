@@ -52,11 +52,13 @@ module.exports = {
     
         try {
             // Valider les données du corps de la requête
-            const isNotValid = verifyUser(req.body);
-            if (!isNotValid) {
-                return res.status(400).json({ error: 'Invalid User data' });
+            const isNotValidateUser = verifyUser(req.body);
+
+            if (isNotValidateUser) {
+                res.status(400).send({
+                    error: isNotValidateUser.message
+                });
             }
-    
             // Vérifier si l'utilisateur existe
             const user = await Usermodel.findById(id);
             if (!user) {
