@@ -60,7 +60,7 @@ Groupe N°2 composé de Loris Navarro, Samuel Charton et Gaëtan Maire
    npm start
    ```
 
-5. Accédez à l'API à l'adresse : `http://localhost:5000`.
+5. Accédez à l'API à l'adresse : `http://localhost:3000`.
 
 ---
 
@@ -71,16 +71,138 @@ La documentation de l'API est disponible via Swagger à l'adresse suivante :
 
 ### Endpoints principaux
 
-#### **Utilisateurs**
-- **POST** `/api/users/register` : Inscription d'un utilisateur.
-- **POST** `/api/users/login` : Connexion et obtention d'un token JWT.
 
-#### **CVs**
-- **GET** `/api/cvs` : Liste publique des CVs visibles.
-- **POST** `/api/cvs` : Création d'un CV (authentifié).
-- **PUT** `/api/cvs/:id` : Modification d'un CV (authentifié, propriétaire).
-- **DELETE** `/api/cvs/:id` : Suppression d'un CV (authentifié, propriétaire).
+# Documentation API
 
-#### **Recommandations**
-- **POST** `/api/recommendations/:cvId` : Ajout d'une recommandation sur un CV.
-- **GET** `/api/recommendations/:cvId` : Récupération des recommandations pour un CV.
+Cette documentation décrit les principaux endpoints de l'API pour l'authentification, la gestion des utilisateurs, des CVs et des recommandations.
+
+---
+
+## **Authentification**
+- **POST** `/api/auth/register` : Inscription d'un utilisateur.
+    - Permet de créer un nouveau compte utilisateur.
+    - **Exemple d'entrée :**
+      ```json
+      {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "password": "P@ssw0rd123"
+      }
+      ```
+    - **Réponse attendue :**
+      ```json
+      {
+        "success": true,
+        "user": {
+          "id": "670507e5a85e8b4542098ab9",
+          "name": "John Doe",
+          "email": "john.doe@example.com"
+        }
+      }
+      ```
+
+- **POST** `/api/auth/login` : Connexion et obtention d'un token JWT.
+    - **Exemple d'entrée :**
+      ```json
+      {
+        "email": "john.doe@example.com",
+        "password": "P@ssw0rd123"
+      }
+      ```
+    - **Réponse attendue :**
+      ```json
+      {
+        "message": "Successfully logged in.",
+        "user": {
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+      ```
+
+- **POST** `/api/auth/logout` : Déconnexion de l'utilisateur.
+
+---
+
+## **Gestion des utilisateurs**
+- **POST** `/api/user/me` : Récupération des informations de l'utilisateur connecté.
+    - Nécessite un token JWT valide dans l'en-tête.
+    - **Réponse attendue :**
+      ```json
+      {
+        "id": "670507e5a85e8b4542098ab9",
+        "name": "John Doe",
+        "email": "john.doe@example.com"
+      }
+      ```
+
+- **PUT** `/api/user/{id}` : Mise à jour des informations utilisateur.
+    - Modifie le nom, l'email ou le mot de passe.
+    - **Exemple d'entrée :**
+      ```json
+      {
+        "name": "Jane Doe",
+        "email": "jane.doe@example.com",
+        "password": "NewP@ssword123"
+      }
+      ```
+
+- **DELETE** `/api/user/{id}` : Suppression d'un utilisateur.
+
+---
+
+## **Gestion des CVs**
+- **GET** `/api/cv/` : Liste de tous les CVs.
+- **GET** `/api/cv/getAllVisible` : Liste des CVs publics.
+- **GET** `/api/cv/{id}` : Détails d’un CV spécifique.
+- **POST** `/api/cv/` : Création d'un CV (authentifié).
+    - **Exemple d'entrée :**
+      ```json
+      {
+        "userId": "670507e5a85e8b4542098ab9",
+        "personalInfo": {
+          "firstName": "John",
+          "lastName": "Doe",
+          "description": "Full-stack developer."
+        },
+        "education": [
+          {
+            "degree": "Bachelor of Science",
+            "institution": "MIT",
+            "year": 2020
+          }
+        ],
+        "experience": [
+          {
+            "jobTitle": "Software Engineer",
+            "company": "TechCorp",
+            "years": 3
+          }
+        ],
+        "isVisible": true
+      }
+      ```
+
+- **PUT** `/api/cv/{id}` : Modification d’un CV (authentifié, propriétaire).
+- **DELETE** `/api/cv/{id}` : Suppression d’un CV (authentifié, propriétaire).
+- **PATCH** `/api/cv/{id}/visibility` : Modification de la visibilité d’un CV.
+
+---
+
+## **Gestion des recommandations**
+- **POST** `/api/review/` : Création d’une recommandation.
+    - **Exemple d'entrée :**
+      ```json
+      {
+        "cvId": "670507e5a85e8b4542098ab9",
+        "userId": "570102e5a85e8b4542098bc9",
+        "comment": "Great developer!"
+      }
+      ```
+
+- **GET** `/api/review/cv/{cvId}` : Récupération des recommandations d’un CV.
+- **GET** `/api/review/user/{userId}` : Récupération des recommandations laissées par un utilisateur.
+- **GET** `/api/review/{id}` : Détails d’une recommandation spécifique.
+- **PUT** `/api/review/{id}` : Modification d’une recommandation.
+- **DELETE** `/api/review/{id}` : Suppression d’une recommandation.
