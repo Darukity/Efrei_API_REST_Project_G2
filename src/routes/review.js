@@ -44,6 +44,10 @@ const { verifyToken } = require('../middleware/jwt');
  */
 router.post('/', verifyToken, reviewController.createRecommendation);
 
+router.get('/', (req, res) => {
+    res.send('Hello word');
+});
+
 /**
  * @swagger
  * /api/review/cv/{cvId}:

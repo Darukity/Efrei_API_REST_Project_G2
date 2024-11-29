@@ -2,126 +2,127 @@ const Recommendation = require('../models/Review');
 const CV = require('../models/CV');
 const User = require('../models/User');
 
-// Créer une nouvelle recommandation
-exports.createRecommendation = async (req, res) => {
-    try {
-        const { cvId, userId, comment } = req.body;
+module.exports = {
+    createRecommendation: async (req, res) => {
+        try {
+            const { cvId, userId, comment } = req.body;
 
-        const cvExists = await CV.findById(cvId);
-        if (!cvExists) {
-            return res.status(404).json({ error: 'CV not found.' });
+            const cvExists = await CV.findById(cvId);
+            if (!cvExists) {
+                return res.status(404).json({ error: 'CV not found.' });
+            }
+
+            const userExists = await User.findById(userId);
+            if (!userExists) {
+                return res.status(404).json({ error: 'User not found.' });
+            }
+
+            const recommendation = new Recommendation({
+                cvId,
+                userId,
+                comment,
+            });
+
+            await recommendation.save();
+
+            res.status(201).json({ message: 'Recommendation created successfully.', recommendation });
+        } catch (error) {
+            res.status(500).json({ error: 'Error creating recommendation.', details: error.message });
         }
+    },
 
-        const userExists = await User.findById(userId);
-        if (!userExists) {
-            return res.status(404).json({ error: 'User not found.' });
+    // Récupérer toutes les recommandations liées à un CV spécifique
+    getRecommendationsForCV: async (req, res) => {
+        try {
+            const { cvId } = req.params;
+
+            const cvExists = await CV.findById(cvId);
+            if (!cvExists) {
+                return res.status(404).json({ error: 'CV not found.' });
+            }
+
+            const recommendations = await Recommendation.find({ cvId }).populate('userId', 'name email');
+
+            res.status(200).json({ recommendations });
+        } catch (error) {
+            res.status(500).json({ error: 'Error retrieving recommendations for CV.', details: error.message });
         }
+    },
 
-        const recommendation = new Recommendation({
-            cvId,
-            userId,
-            comment,
-        });
+    // Récupérer toutes les recommandations créées par un utilisateur spécifique
+    getRecommendationsByUser: async (req, res) => {
+        try {
+            const { userId } = req.params;
 
-        await recommendation.save();
+            const userExists = await User.findById(userId);
+            if (!userExists) {
+                return res.status(404).json({ error: 'User not found.' });
+            }
 
-        res.status(201).json({ message: 'Recommendation created successfully.', recommendation });
-    } catch (error) {
-        res.status(500).json({ error: 'Error creating recommendation.', details: error.message });
-    }
-};
+            const recommendations = await Recommendation.find({ userId })
+                .populate('cvId', 'title')
+                .populate('userId', 'name email');
 
-// Récupérer toutes les recommandations liées à un CV spécifique
-exports.getRecommendationsForCV = async (req, res) => {
-    try {
-        const { cvId } = req.params;
-
-        const cvExists = await CV.findById(cvId);
-        if (!cvExists) {
-            return res.status(404).json({ error: 'CV not found.' });
+            res.status(200).json({ recommendations });
+        } catch (error) {
+            res.status(500).json({ error: 'Error retrieving recommendations for user.', details: error.message });
         }
+    },
 
-        const recommendations = await Recommendation.find({ cvId }).populate('userId', 'name email');
+    // Récupérer une recommandation par son ID
+    getRecommendationById: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const recommendation = await Recommendation.findById(id)
+                .populate('cvId', 'title')
+                .populate('userId', 'name email');
 
-        res.status(200).json({ recommendations });
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving recommendations for CV.', details: error.message });
-    }
-};
+            if (!recommendation) {
+                return res.status(404).json({ error: 'Recommendation not found.' });
+            }
 
-// Récupérer toutes les recommandations créées par un utilisateur spécifique
-exports.getRecommendationsByUser = async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        const userExists = await User.findById(userId);
-        if (!userExists) {
-            return res.status(404).json({ error: 'User not found.' });
+            res.status(200).json(recommendation);
+        } catch (error) {
+            res.status(500).json({ error: 'Error retrieving recommendation.', details: error.message });
         }
+    },
 
-        const recommendations = await Recommendation.find({ userId })
-            .populate('cvId', 'title')
-            .populate('userId', 'name email');
+    // Mettre à jour une recommandation
+    updateRecommendation: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { comment } = req.body;
 
-        res.status(200).json({ recommendations });
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving recommendations for user.', details: error.message });
-    }
-};
+            const recommendation = await Recommendation.findByIdAndUpdate(
+                id,
+                { comment },
+                { new: true, runValidators: true }
+            );
 
-// Récupérer une recommandation par son ID
-exports.getRecommendationById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const recommendation = await Recommendation.findById(id)
-            .populate('cvId', 'title')
-            .populate('userId', 'name email');
+            if (!recommendation) {
+                return res.status(404).json({ error: 'Recommendation not found.' });
+            }
 
-        if (!recommendation) {
-            return res.status(404).json({ error: 'Recommendation not found.' });
+            res.status(200).json({ message: 'Recommendation updated successfully.', recommendation });
+        } catch (error) {
+            res.status(500).json({ error: 'Error updating recommendation.', details: error.message });
         }
+    },
 
-        res.status(200).json(recommendation);
-    } catch (error) {
-        res.status(500).json({ error: 'Error retrieving recommendation.', details: error.message });
-    }
-};
+    // Supprimer une recommandation
+    deleteRecommendation: async (req, res) => {
+        try {
+            const { id } = req.params;
 
-// Mettre à jour une recommandation
-exports.updateRecommendation = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { comment } = req.body;
+            const recommendation = await Recommendation.findByIdAndDelete(id);
 
-        const recommendation = await Recommendation.findByIdAndUpdate(
-            id,
-            { comment },
-            { new: true, runValidators: true }
-        );
+            if (!recommendation) {
+                return res.status(404).json({ error: 'Recommendation not found.' });
+            }
 
-        if (!recommendation) {
-            return res.status(404).json({ error: 'Recommendation not found.' });
+            res.status(200).json({ message: 'Recommendation deleted successfully.' });
+        } catch (error) {
+            res.status(500).json({ error: 'Error deleting recommendation.', details: error.message });
         }
-
-        res.status(200).json({ message: 'Recommendation updated successfully.', recommendation });
-    } catch (error) {
-        res.status(500).json({ error: 'Error updating recommendation.', details: error.message });
-    }
-};
-
-// Supprimer une recommandation
-exports.deleteRecommendation = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const recommendation = await Recommendation.findByIdAndDelete(id);
-
-        if (!recommendation) {
-            return res.status(404).json({ error: 'Recommendation not found.' });
-        }
-
-        res.status(200).json({ message: 'Recommendation deleted successfully.' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error deleting recommendation.', details: error.message });
     }
 };
