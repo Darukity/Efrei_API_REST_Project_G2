@@ -48,6 +48,6 @@ const CVSchema = new Schema(
     }
 );
 
-const CV = mongoose.model('CV', CVSchema);
+const CV = mongoose.models.CV || mongoose.model('CV', CVSchema);
 
 module.exports = CV;
