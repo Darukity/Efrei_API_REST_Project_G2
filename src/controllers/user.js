@@ -1,5 +1,6 @@
 const { verifyUser } = require('../validator/user')
 const Usermodel = require('../models/User');
+const bcrypt = require('bcrypt');
 
 module.exports = {
     getMyInfos: async (req, res) => {
