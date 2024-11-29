@@ -46,25 +46,28 @@ router.post('/me', verifyToken, userController.getMyInfos);
 
 /**
  * @swagger
- * /api/user/{id}:
+ * /user/{id}:
  *   delete:
- *     summary: Delete a user by ID
- *     description: Deletes a user using their ID. Requires authentication.
+ *     summary: Supprime un utilisateur spécifique
+ *     description: Permet à un utilisateur authentifié de supprimer son propre compte. L'utilisateur doit être autorisé à effectuer cette opération.
  *     tags:
- *       - User
- *     security:
- *       - bearerAuth: []  # Requires a bearer token
+ *       - Users
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The unique identifier of the user to delete.
+ *         description: ID de l'utilisateur à supprimer
  *         schema:
  *           type: string
- *           example: "670507e5a85e8b4542098ab9"
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Token JWT sous la forme `Bearer <token>`
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
- *         description: User deleted successfully.
+ *         description: Utilisateur supprimé avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -72,32 +75,61 @@ router.post('/me', verifyToken, userController.getMyInfos);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "User deleted successfully."
+ *                   example: User deleted successfully
+ *       403:
+ *         description: Non autorisé à supprimer cet utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized to delete this User
  *       404:
- *         description: User not found.
+ *         description: Utilisateur non trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User not found
  *       500:
- *         description: Error deleting the user.
+ *         description: Une erreur est survenue lors de la suppression de l'utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: An error occurred while deleting the User
  */
 router.delete('/:id', verifyToken, userController.deleteUser);
 
 /**
  * @swagger
- * /api/user/{id}:
+ * /user/{id}:
  *   put:
- *     summary: Update a user by ID
- *     description: Updates a user's information. Accepts name, email, and optionally a new password.
+ *     summary: Met à jour un utilisateur spécifique
+ *     description: Permet à un utilisateur authentifié de mettre à jour son propre compte. L'utilisateur doit être autorisé à effectuer cette opération.
  *     tags:
- *       - User
- *     security:
- *       - bearerAuth: []  # Requires a bearer token
+ *       - Users
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The unique identifier of the user to update.
+ *         description: ID de l'utilisateur à mettre à jour
  *         schema:
  *           type: string
- *           example: "670507e5a85e8b4542098ab9"
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Token JWT sous la forme `Bearer <token>`
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -107,20 +139,16 @@ router.delete('/:id', verifyToken, userController.deleteUser);
  *             properties:
  *               name:
  *                 type: string
- *                 description: The new name of the user.
- *                 example: "Jane Doe"
+ *                 example: John Doe
  *               email:
  *                 type: string
- *                 format: email
- *                 description: The new email address of the user.
- *                 example: jane.doe@example.com
+ *                 example: johndoe@example.com
  *               password:
  *                 type: string
- *                 description: The new password for the user. It will be hashed before saving.
- *                 example: "NewP@ssword123"
+ *                 example: SecurePassword123
  *     responses:
  *       200:
- *         description: User updated successfully.
+ *         description: Utilisateur mis à jour avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -128,26 +156,59 @@ router.delete('/:id', verifyToken, userController.deleteUser);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "User updated successfully."
+ *                   example: User updated successfully
  *                 user:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: string
- *                       description: The unique identifier of the updated user.
- *                       example: "670507e5a85e8b4542098ab9"
+ *                       example: 12345
  *                     name:
  *                       type: string
- *                       description: The updated name of the user.
- *                       example: Jane Doe
+ *                       example: John Doe
  *                     email:
  *                       type: string
- *                       description: The updated email address of the user.
- *                       example: jane.doe@example.com
+ *                       example: johndoe@example.com
+ *       400:
+ *         description: Données utilisateur invalides
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid User data
+ *       403:
+ *         description: Non autorisé à mettre à jour cet utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Unauthorized to update this User
  *       404:
- *         description: User not found.
+ *         description: Utilisateur non trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User not found
  *       500:
- *         description: Error updating the user.
+ *         description: Une erreur est survenue lors de la mise à jour de l'utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: An error occurred while updating the User
  */
 router.put('/:id', verifyToken, userController.updateUser);
 
