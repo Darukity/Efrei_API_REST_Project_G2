@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const cvController = require('../controllers/cv');
-const {verifyToken} = require("../middleware/jwt");
+const { verifyToken } = require("../middleware/jwt");
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ router.get('/getAllVisible', cvController.getAllVisibleCV);
  * /api/cv/{id}:
  *   get:
  *     summary: Get a specific CV
- *     description: Retrieve detailed information about a specific CV by its ID.
+ *     description: Retrieve detailed information about a specific CV by its ID and if visible (doesn't apply if logged in as owner).
  *     tags:
  *       - CV
  *     parameters:
@@ -75,12 +75,14 @@ router.get('/getAllVisible', cvController.getAllVisibleCV);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/CV'
+ *       403:
+ *         description: Unauthorized to view this CV.
  *       404:
  *         description: CV not found.
  *       500:
  *         description: Internal server error.
  */
-router.get('/:id', verifyToken,cvController.getCV);
+router.get('/:id', verifyToken, cvController.getCV);
 
 /**
  * @swagger
@@ -107,10 +109,10 @@ router.get('/:id', verifyToken,cvController.getCV);
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/CV'
+ *       403:
+ *         description: Unauthorized to access these CVs.
  *       404:
  *         description: No CVs found for the user.
- *       403:
- *         description: Unauthorized access.
  *       500:
  *         description: Internal server error.
  */
@@ -121,7 +123,7 @@ router.get('/user/:id', verifyToken, cvController.getUserCV);
  * /api/cv/{id}:
  *   put:
  *     summary: Update a specific CV
- *     description: Modify the details of a specific CV by its ID.
+ *     description: Modify the details of a specific CV by its ID if cv owned by current user.
  *     tags:
  *       - CV
  *     parameters:
@@ -146,10 +148,10 @@ router.get('/user/:id', verifyToken, cvController.getUserCV);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/CV'
+ *       403:
+ *         description: Unauthorized to update this CV.
  *       404:
  *         description: CV not found.
- *       400:
- *         description: Invalid request data.
  *       500:
  *         description: Internal server error.
  */
@@ -160,7 +162,7 @@ router.put('/:id', verifyToken, cvController.updateCV);
  * /api/cv/{id}:
  *   delete:
  *     summary: Delete a specific CV
- *     description: Remove a CV by its unique identifier.
+ *     description: Remove a CV by its unique identifier if cv owned by current user.
  *     tags:
  *       - CV
  *     parameters:
@@ -173,6 +175,8 @@ router.put('/:id', verifyToken, cvController.updateCV);
  *     responses:
  *       200:
  *         description: CV deleted successfully.
+ *       403:
+ *         description: Unauthorized to delete this CV.
  *       404:
  *         description: CV not found.
  *       500:
@@ -214,7 +218,7 @@ router.post('/', verifyToken, cvController.createCV);
  * /api/cv/{id}/visibility:
  *   patch:
  *     summary: Update the visibility of a CV
- *     description: Update the visibility status (`isVisible`) of a specific CV by its ID.
+ *     description: Update the visibility status (`isVisible`) of a specific CV by its ID if cv owned by current user.
  *     tags:
  *       - CV
  *     parameters:
@@ -251,6 +255,8 @@ router.post('/', verifyToken, cvController.createCV);
  *                   $ref: '#/components/schemas/CV'
  *       400:
  *         description: Invalid visibility data.
+ *       403:
+ *         description: Unauthorized to edit visibility for this CV.
  *       404:
  *         description: CV not found.
  *       500:
@@ -333,4 +339,3 @@ module.exports = router;
  *           format: date-time
  *           description: Date and time when the CV was last updated.
  */
-
