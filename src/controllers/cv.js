@@ -93,6 +93,35 @@ module.exports = {
         }
     },
 
+    getUserCV: async (req, res) => {
+        try {
+            const userId = req.params.id;
+
+            // Rechercher les CVs appartenant à cet utilisateur
+            const cvs = await Cvmodel.find({ userId: userId });
+
+            if (!cvs || cvs.length === 0) {
+                return res.status(404).send({
+                    error: 'No CVs found for this user.',
+                });
+            }
+
+            // Vérifier que l'utilisateur est bien le propriétaire
+            if (userId !== req.user._id.toString()) {
+                return res.status(403).send({
+                    error: 'Unauthorized to access these CVs.',
+                });
+            }
+
+            res.status(200).send(cvs);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                error: error.message || 'An error occurred while fetching the CVs.',
+            });
+        }
+    },
+
     updateCV: async (req, res) => {
         try {
             const cvId = req.params.id;
